@@ -12,4 +12,4 @@ class ItemSerializer(serializers.ModelSerializer):
         fields = ['id', 'item_name', 'food_category', 'calories', 
                   'total_fat', 'saturated_fat', 'trans_fat', 'cholesterol',
                   'sodium', 'carbohydrates', 'protein', 'sugar', 
-                  'dietary_fiber']
+                  'dietary_fiber', 'restaurant_id']
