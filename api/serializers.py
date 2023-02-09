@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Restaurant, Item
+from .models import Restaurant, Item 
 
 class RestaurantSerializer(serializers.ModelSerializer):
     class Meta:
@@ -13,3 +13,10 @@ class ItemSerializer(serializers.ModelSerializer):
                   'total_fat', 'saturated_fat', 'trans_fat', 'cholesterol',
                   'sodium', 'carbohydrates', 'protein', 'sugar', 
                   'dietary_fiber', 'restaurant_id']
+        
+# class ProfileSerializer(serializers.ModelSerializer):
+#     user_id = serializers.IntegerField(read_only=True)
+
+#     class Meta:
+#         model = Profile
+#         fields = ['id', 'user_id', 'weight', 'height_feet', 'height_inches']

@@ -1,4 +1,5 @@
 from django.db import models
+from django.conf import settings
 
 
 class Restaurant(models.Model):
@@ -22,3 +23,10 @@ class Item(models.Model):
     dietary_fiber = models.FloatField(null=True, blank=True)
 
     restaurant = models.ForeignKey(Restaurant, on_delete=models.CASCADE, related_name='item')
+
+
+# class Profile(models.Model):
+#     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+#     height_feet = models.IntegerField(null=True, blank=True)
+#     height_inches = models.IntegerField(null=True, blank=True)
+#     weight = models.FloatField(null=True, blank=True)
