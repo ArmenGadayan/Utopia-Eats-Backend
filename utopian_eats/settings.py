@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'djoser',
     'rest_framework_simplejwt',
+    'corsheaders',
 
     'api',
     'core',
@@ -153,3 +154,4 @@ DJOSER = {
     }
 }
 
+CORS_ALLOW_ALL_ORIGINS = True
