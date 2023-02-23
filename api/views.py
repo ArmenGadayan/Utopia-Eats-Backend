@@ -40,7 +40,7 @@ class UserItemViewSet(APIView):
             return Response({"bad response": "no location"}, status=status.HTTP_400_BAD_REQUEST)
 
         lat, lng = location.split(',')
-        lat, lng = 33.64578460229771, -117.84253108132884
+        #lat, lng = 33.64578460229771, -117.84253108132884
 
         url =("https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=" + str(lat)  + "%2C" + str(lng) + "&radius=1000" +
         "&type=restaurant&key=""" + api_key)
@@ -54,7 +54,7 @@ class UserItemViewSet(APIView):
                 if SequenceMatcher(None, result["name"], r[1]).ratio() > 0.8:
                     matches.append((result["name"], r[0]))
 
-        queryset = Item.objects.filter(restaurant__id__in=[m[1] for m in matches]).annotate(itemcount=Window(expression=Count("id"), partition_by=[F("restaurant_id")])).order_by("-itemcount")
+        queryset = Item.objects.filter(restaurant__id__in=[m[1] for m in matches]).annotate(itemcount=Window(expression=Count("id"), partition_by=[F("restaurant_id")])).order_by("-itemcount").select_related("restaurant")
 
         serializer = ItemSerializer(queryset, many=True)
 
