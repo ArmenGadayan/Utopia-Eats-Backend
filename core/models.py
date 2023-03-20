@@ -14,11 +14,17 @@ class User(AbstractUser):
     GOAL_LOSE = "Lose"
     GOAL_MAINTAIN = "Maintain"
     GOAL_GAIN = "Gain"
-
     GOAL_CHOICES = [
         (GOAL_LOSE, "Lose"),
         (GOAL_MAINTAIN, "Maintain"),
         (GOAL_GAIN, "Gain")
+    ]
+
+    SEX_MALE = "Male"
+    SEX_FEMALE = "Female"
+    SEX_CHOICES = [
+        (SEX_MALE, "Male"),
+        (SEX_FEMALE, "Female")
     ]
 
 
@@ -32,5 +38,7 @@ class User(AbstractUser):
     bmr = models.FloatField(null=True, blank=True)
     activity_level = models.FloatField(default=ACTIVITY_LEVEL_MODERATE, choices=ACTIVITY_LEVEL_CHOICES)
     goal = models.CharField(max_length=10, choices=GOAL_CHOICES, default=GOAL_MAINTAIN)
+    sex = models.CharField(max_length=10, choices=SEX_CHOICES, default=SEX_MALE)
+
 
 
