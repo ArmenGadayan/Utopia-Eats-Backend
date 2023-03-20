@@ -37,7 +37,13 @@ class UserItemViewSet(APIView):
     def get(self, request, *args, **kwargs):
 
         user = self.request.user
-        bmr = user.bmr
+        sex = user.sex
+
+        weight = user.weight*0.453592
+        height = (user.height_feet*12 + user.height_inches)*2.54
+
+        if sex == "Male":
+            bmr = 10*weight + 6.25*height - 5*user.age + 5
 
         calories = bmr* user.activity_level
 
@@ -72,7 +78,7 @@ class UserItemViewSet(APIView):
 
         lat, lng = location.split(',')
 
-        # lat, lng = 33.64578460229771, -117.84253108132884
+        #lat, lng = 33.64578460229771, -117.84253108132884
 
         url =("https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=" + str(lat)  + "%2C" + str(lng) + "&radius=10000" +
         "&type=restaurant&key=""" + api_key)

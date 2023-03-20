@@ -35,7 +35,6 @@ class User(AbstractUser):
     height_inches = models.IntegerField(null=True, blank=True)
     weight = models.FloatField(null=True, blank=True)
     age = models.IntegerField(null=True, blank=True)
-    bmr = models.FloatField(null=True, blank=True)
     activity_level = models.FloatField(default=ACTIVITY_LEVEL_MODERATE, choices=ACTIVITY_LEVEL_CHOICES)
     goal = models.CharField(max_length=10, choices=GOAL_CHOICES, default=GOAL_MAINTAIN)
     sex = models.CharField(max_length=10, choices=SEX_CHOICES, default=SEX_MALE)
