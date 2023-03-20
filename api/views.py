@@ -35,7 +35,6 @@ class ItemViewSet(ModelViewSet):
 class UserItemViewSet(APIView):
 
     def get(self, request, *args, **kwargs):
-
         user = self.request.user
         sex = user.sex
 
