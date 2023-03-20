@@ -8,13 +8,14 @@ class RestaurantSerializer(serializers.ModelSerializer):
 
 class ItemSerializer(serializers.ModelSerializer):
     restaurant_name = serializers.CharField(source='restaurant.restaurant_name')
+    score = serializers.IntegerField()
 
     class Meta:
         model = Item
         fields = ['id', 'item_name', 'food_category', 'calories', 
                   'total_fat', 'saturated_fat', 'trans_fat', 'cholesterol',
                   'sodium', 'carbohydrates', 'protein', 'sugar', 
-                  'dietary_fiber', 'restaurant_id', 'restaurant_name']
+                  'dietary_fiber', 'restaurant_id', 'restaurant_name', 'score']
         
 # class ProfileSerializer(serializers.ModelSerializer):
 #     user_id = serializers.IntegerField(read_only=True)

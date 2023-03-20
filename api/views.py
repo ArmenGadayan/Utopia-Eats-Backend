@@ -10,7 +10,7 @@ from rest_framework.response import Response
 from rest_framework import status
 import requests
 from difflib import SequenceMatcher
-from django.db.models import Count, F, Window
+from django.db.models import Count, F, Window, Value
 from config import api_key
 import time
 
@@ -36,48 +36,48 @@ class UserItemViewSet(APIView):
 
     def get(self, request, *args, **kwargs):
         user = self.request.user
-        sex = user.sex
+        sex = "Male"
 
-        weight = user.weight*0.453592
-        height = (user.height_feet*12 + user.height_inches)*2.54
+        weight = 180*0.453592
+        height = (6*12 + 0)*2.54
 
         if sex == "Male":
-            bmr = 10*weight + 6.25*height - 5*user.age + 5
+            bmr = 10*weight + 6.25*height - 5*21 + 5
 
-        calories = bmr* user.activity_level
+        calories = bmr* 1.55
 
-        if user.goal == "Lose":
-            calories = calories*0.85
-        elif user.goal == "Gain":
-            calories += 500
+        # if user.goal == "Lose":
+        #     calories = calories*0.85
+        # elif user.goal == "Gain":
+        #     calories += 500
 
         calories = calories/3
         
         carbs = (calories * 0.4)/4
-        if user.goal == "Lose":
-            protein = (calories*0.4)/4
-            fats = (calories*0.2)/9
-        else:
-            protein = (calories*0.3)/4
-            fats = (calories*0.3)/9
+        # if user.goal == "Lose":
+        #     protein = (calories*0.4)/4
+        #     fats = (calories*0.2)/9
+        # else:
+        protein = (calories*0.3)/4
+        fats = (calories*0.3)/9
 
         calories_floor = calories*0.85
         calories_ceiling = calories*1.15
-        carbs_floor = carbs*0.7
-        carbs_ceiling = carbs*1.3
-        protein_floor = protein*0.7
-        protein_ceiling = protein*1.3
-        fats_floor = fats*0.7
-        fats_ceiling = fats*1.3
+        carbs_floor = carbs*0.8
+        carbs_ceiling = carbs*1.2
+        protein_floor = protein*0.8
+        protein_ceiling = protein*1.2
+        fats_floor = fats*0.8
+        fats_ceiling = fats*1.2
 
         location = request.query_params.get("location")
 
-        if location is None:
-            return Response({"bad response": "no location"}, status=status.HTTP_400_BAD_REQUEST)
+        # if location is None:
+        #     return Response({"bad response": "no location"}, status=status.HTTP_400_BAD_REQUEST)
 
-        lat, lng = location.split(',')
+        #lat, lng = location.split(',')
 
-        #lat, lng = 33.64578460229771, -117.84253108132884
+        lat, lng = 33.64578460229771, -117.84253108132884
 
         url =("https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=" + str(lat)  + "%2C" + str(lng) + "&radius=10000" +
         "&type=restaurant&key=""" + api_key)
@@ -120,11 +120,35 @@ class UserItemViewSet(APIView):
         except KeyError:
             pass
 
-        queryset = Item.objects.filter(restaurant__id__in=[m[1] for m in matches]).filter(calories__gte = calories_floor, calories__lte = calories_ceiling, 
+        # queryset = Item.objects.filter(restaurant__id__in=[m[1] for m in matches]).filter(calories__gte = calories_floor, calories__lte = calories_ceiling, 
+        #     carbohydrates__gte = carbs_floor, carbohydrates__lte = carbs_ceiling, protein__gte = protein_floor, protein__lte = protein_ceiling, 
+        #     total_fat__gte = fats_floor, total_fat__lte = fats_ceiling).annotate(itemcount=Window(expression=Count("id"), partition_by=[F("restaurant_id")])).order_by("-itemcount").select_related("restaurant")
+        
+        allMatch = Item.objects.filter(restaurant__id__in=[m[1] for m in matches]).filter(calories__gte = calories_floor, calories__lte = calories_ceiling, 
             carbohydrates__gte = carbs_floor, carbohydrates__lte = carbs_ceiling, protein__gte = protein_floor, protein__lte = protein_ceiling, 
-            total_fat__gte = fats_floor, total_fat__lte = fats_ceiling).annotate(itemcount=Window(expression=Count("id"), partition_by=[F("restaurant_id")])).order_by("-itemcount").select_related("restaurant")
+            total_fat__gte = fats_floor, total_fat__lte = fats_ceiling).annotate(score=Value(4)).select_related("restaurant")
+        
+        carbProteinMatch = Item.objects.filter(restaurant__id__in=[m[1] for m in matches]).filter(calories__gte = calories_floor, calories__lte = calories_ceiling, 
+            carbohydrates__gte = carbs_floor, carbohydrates__lte = carbs_ceiling, protein__gte = protein_floor, protein__lte = protein_ceiling).exclude(id__in=allMatch.values_list("id", flat=True)).annotate(score=Value(3)).select_related("restaurant")
+        
+        carbFatsMatch = Item.objects.filter(restaurant__id__in=[m[1] for m in matches]).filter(calories__gte = calories_floor, calories__lte = calories_ceiling, 
+            carbohydrates__gte = carbs_floor, carbohydrates__lte = carbs_ceiling, total_fat__gte = fats_floor, total_fat__lte = fats_ceiling).exclude(id__in=allMatch.values_list("id", flat=True)).annotate(score=Value(3)).select_related("restaurant")
+        
+        fatsProteinMatch = Item.objects.filter(restaurant__id__in=[m[1] for m in matches]).filter(calories__gte = calories_floor, calories__lte = calories_ceiling, 
+            total_fat__gte = fats_floor, total_fat__lte = fats_ceiling, protein__gte = protein_floor, protein__lte = protein_ceiling).exclude(id__in=allMatch.values_list("id", flat=True)).annotate(score=Value(3)).select_related("restaurant")
+        
+        proteinMatch = Item.objects.filter(restaurant__id__in=[m[1] for m in matches]).filter(calories__gte = calories_floor, calories__lte = calories_ceiling, 
+            protein__gte = protein_floor, protein__lte = protein_ceiling).exclude(id__in=carbProteinMatch.values_list("id", flat=True)).exclude(id__in=fatsProteinMatch.values_list("id", flat=True)).exclude(id__in=allMatch.values_list("id", flat=True)).annotate(score=Value(2)).select_related("restaurant")
+        
+        carbMatch = Item.objects.filter(restaurant__id__in=[m[1] for m in matches]).filter(calories__gte = calories_floor, calories__lte = calories_ceiling, 
+            carbohydrates__gte = carbs_floor, carbohydrates__lte = carbs_ceiling).exclude(id__in=carbFatsMatch.values_list("id", flat=True)).exclude(id__in=carbProteinMatch.values_list("id", flat=True)).exclude(id__in=allMatch.values_list("id", flat=True)).annotate(score=Value(2)).select_related("restaurant")
+        
+        fatsMatch = Item.objects.filter(restaurant__id__in=[m[1] for m in matches]).filter(calories__gte = calories_floor, calories__lte = calories_ceiling, 
+            total_fat__gte = fats_floor, total_fat__lte = fats_ceiling).exclude(id__in=carbFatsMatch.values_list("id", flat=True)).exclude(id__in=fatsProteinMatch.values_list("id", flat=True)).exclude(id__in=allMatch.values_list("id", flat=True)).annotate(score=Value(2)).select_related("restaurant")
+        
+        result = allMatch.union(carbProteinMatch, carbFatsMatch, fatsProteinMatch, proteinMatch, carbMatch, fatsMatch, all=True).order_by("-score")
 
-        serializer = ItemSerializer(queryset, many=True)
+        serializer = ItemSerializer(result, many=True)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
     
