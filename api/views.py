@@ -75,9 +75,9 @@ class UserItemViewSet(APIView):
         # if location is None:
         #     return Response({"bad response": "no location"}, status=status.HTTP_400_BAD_REQUEST)
 
-        #lat, lng = location.split(',')
+        lat, lng = location.split(',')
 
-        lat, lng = 33.64578460229771, -117.84253108132884
+        #lat, lng = 33.64578460229771, -117.84253108132884
 
         url =("https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=" + str(lat)  + "%2C" + str(lng) + "&radius=10000" +
         "&type=restaurant&key=""" + api_key)
