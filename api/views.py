@@ -36,30 +36,30 @@ class UserItemViewSet(APIView):
 
     def get(self, request, *args, **kwargs):
         user = self.request.user
-        sex = "Male"
+        sex = user.sex
 
-        weight = 180*0.453592
-        height = (6*12 + 0)*2.54
+        weight = user.weight*0.453592
+        height = (user.height_feet*12 + user.height_inches)*2.54
 
         if sex == "Male":
             bmr = 10*weight + 6.25*height - 5*21 + 5
 
-        calories = bmr* 1.55
+        calories = bmr* user.activity_level
 
-        # if user.goal == "Lose":
-        #     calories = calories*0.85
-        # elif user.goal == "Gain":
-        #     calories += 500
+        if user.goal == "Lose":
+            calories = calories*0.85
+        elif user.goal == "Gain":
+            calories += 500
 
         calories = calories/3
         
         carbs = (calories * 0.4)/4
-        # if user.goal == "Lose":
-        #     protein = (calories*0.4)/4
-        #     fats = (calories*0.2)/9
-        # else:
-        protein = (calories*0.3)/4
-        fats = (calories*0.3)/9
+        if user.goal == "Lose":
+            protein = (calories*0.4)/4
+            fats = (calories*0.2)/9
+        else:
+            protein = (calories*0.3)/4
+            fats = (calories*0.3)/9
 
         calories_floor = calories*0.85
         calories_ceiling = calories*1.15
