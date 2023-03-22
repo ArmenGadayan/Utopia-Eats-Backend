@@ -42,6 +42,8 @@ class UserItemViewSet(APIView):
         height = (user.height_feet*12 + user.height_inches)*2.54
 
         if sex == "Male":
+            bmr = 10*weight + 6.25*height - 5*21 - 161
+        else:
             bmr = 10*weight + 6.25*height - 5*21 + 5
 
         calories = bmr* user.activity_level
